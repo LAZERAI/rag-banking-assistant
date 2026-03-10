@@ -4,8 +4,8 @@ import torch
 from transformers import AutoTokenizer, AutoModel
 import numpy as np
 
-FAISS_INDEX_FILE = "../../rag_vector_index.faiss"
-PDF_CHUNKS_FILE = "../../preprocessed_pdf_chunks.json"
+FAISS_INDEX_FILE = "../rag_vector_index.faiss"
+PDF_CHUNKS_FILE = "../preprocessed_pdf_chunks.json"
 HF_MODEL_NAME = "sentence-transformers/all-MiniLM-L6-v2"
 TOP_K = 5
 

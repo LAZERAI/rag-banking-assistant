@@ -7,8 +7,8 @@ from transformers import AutoTokenizer, AutoModel
 # ========================
 # CONFIG
 # ========================
-PDF_JSON_FILE = "../../preprocessed_pdf_chunks.json"
-OUTPUT_FAISS_INDEX = "../../rag_vector_index.faiss"
+PDF_JSON_FILE = "../preprocessed_pdf_chunks.json"
+OUTPUT_FAISS_INDEX = "../rag_vector_index.faiss"
 HF_MODEL_NAME = "sentence-transformers/all-MiniLM-L6-v2"
 
 # Load PDF chunks

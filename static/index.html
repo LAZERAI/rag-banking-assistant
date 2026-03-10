@@ -1,0 +1,228 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>BankRAG — AI Banking Assistant</title>
+  <link rel="stylesheet" href="/static/style.css" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+</head>
+<body>
+  <!-- Sidebar -->
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-top">
+      <div class="logo">
+        <div class="logo-icon">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M3 21h18"/><path d="M3 10h18"/><path d="M5 6l7-3 7 3"/>
+            <path d="M4 10v11"/><path d="M20 10v11"/><path d="M8 14v3"/><path d="M12 14v3"/><path d="M16 14v3"/>
+          </svg>
+        </div>
+        <span class="logo-text">BankRAG</span>
+        <span class="logo-badge">AI</span>
+      </div>
+
+      <button class="new-chat-btn" onclick="newConversation()">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
+        </svg>
+        New Conversation
+      </button>
+
+      <div class="sidebar-section">
+        <div class="sidebar-label">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 8v4l3 3"/><circle cx="12" cy="12" r="10"/></svg>
+          Chat History
+        </div>
+        <div class="history-list" id="historyList">
+          <div class="history-empty" id="historyEmpty">No saved conversations</div>
+        </div>
+        <button class="clear-history-btn" id="clearHistoryBtn" onclick="clearAllHistory()" style="display:none">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/></svg>
+          Clear All History
+        </button>
+      </div>
+
+      <div class="sidebar-section">
+        <div class="sidebar-label">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg>
+          Quick Questions
+        </div>
+        <button class="suggestion-btn" onclick="askSuggestion(this)">
+          <span class="suggestion-icon">🏧</span>
+          <span>What is NEFT and how does it work?</span>
+        </button>
+        <button class="suggestion-btn" onclick="askSuggestion(this)">
+          <span class="suggestion-icon">🏦</span>
+          <span>Types of bank accounts explained</span>
+        </button>
+        <button class="suggestion-btn" onclick="askSuggestion(this)">
+          <span class="suggestion-icon">📋</span>
+          <span>Explain the KYC policy</span>
+        </button>
+        <button class="suggestion-btn" onclick="askSuggestion(this)">
+          <span class="suggestion-icon">💰</span>
+          <span>Minimum balance requirements</span>
+        </button>
+        <button class="suggestion-btn" onclick="askSuggestion(this)">
+          <span class="suggestion-icon">📱</span>
+          <span>Mobile transaction limits</span>
+        </button>
+        <button class="suggestion-btn" onclick="askSuggestion(this)">
+          <span class="suggestion-icon">🔒</span>
+          <span>Explain Basel III norms</span>
+        </button>
+        <button class="suggestion-btn" onclick="askSuggestion(this)">
+          <span class="suggestion-icon">💳</span>
+          <span>Card transaction limits</span>
+        </button>
+        <button class="suggestion-btn" onclick="askSuggestion(this)">
+          <span class="suggestion-icon">📊</span>
+          <span>Banking risk classification</span>
+        </button>
+      </div>
+    </div>
+
+    <div class="sidebar-bottom">
+      <div class="sidebar-divider"></div>
+      <button class="theme-toggle" onclick="toggleTheme()">
+        <span id="themeIcon">🌙</span>
+        <span id="themeLabel">Dark Mode</span>
+      </button>
+      <div class="status-bar" id="statusBar">
+        <span class="status-dot" id="statusDot"></span>
+        <span class="status-text" id="statusText">Checking…</span>
+      </div>
+    </div>
+  </aside>
+
+  <!-- Overlay for mobile -->
+  <div class="sidebar-overlay" id="sidebarOverlay" onclick="closeSidebar()"></div>
+
+  <!-- Main -->
+  <main class="main">
+    <header class="topbar">
+      <div class="topbar-left">
+        <button class="menu-btn" onclick="toggleSidebar()">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/>
+          </svg>
+        </button>
+        <div class="topbar-title">
+          <h1>Banking Assistant</h1>
+          <span class="topbar-sub" id="topbarSub">Ask anything about banking policies</span>
+        </div>
+      </div>
+      <div class="topbar-right">
+        <button class="icon-btn" onclick="newConversation()" title="New chat">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 013 3L7 19l-4 1 1-4L16.5 3.5z"/>
+          </svg>
+        </button>
+        <div class="doc-badge" id="docBadge" title="Documents indexed">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/>
+            <polyline points="14 2 14 8 20 8"/>
+          </svg>
+          <span id="docBadgeText">—</span>
+        </div>
+      </div>
+    </header>
+
+    <!-- Chat area -->
+    <div class="chat-area" id="chatArea">
+      <!-- Welcome -->
+      <div class="welcome" id="welcomeScreen">
+        <div class="welcome-glow"></div>
+        <div class="welcome-avatar">
+          <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+            <path d="M3 21h18"/><path d="M3 10h18"/><path d="M5 6l7-3 7 3"/>
+            <path d="M4 10v11"/><path d="M20 10v11"/><path d="M8 14v3"/><path d="M12 14v3"/><path d="M16 14v3"/>
+          </svg>
+        </div>
+        <h2 class="welcome-title">How can I help you today?</h2>
+        <p class="welcome-desc">I have access to banking documents including RBI guidelines, Basel norms, KYC policies, loan rules, and more.</p>
+
+        <div class="welcome-grid">
+          <div class="welcome-card" onclick="askSuggestion(this)">
+            <div class="wc-icon">💳</div>
+            <div class="wc-body">
+              <div class="wc-title">Card Limits</div>
+              <div class="wc-desc">What are the transaction limits for debit and credit cards?</div>
+            </div>
+          </div>
+          <div class="welcome-card" onclick="askSuggestion(this)">
+            <div class="wc-icon">🏦</div>
+            <div class="wc-body">
+              <div class="wc-title">Deposit Policy</div>
+              <div class="wc-desc">Explain the deposit policy and interest rates</div>
+            </div>
+          </div>
+          <div class="welcome-card" onclick="askSuggestion(this)">
+            <div class="wc-icon">🔐</div>
+            <div class="wc-body">
+              <div class="wc-title">Customer Onboarding</div>
+              <div class="wc-desc">What is the customer onboarding process in banks?</div>
+            </div>
+          </div>
+          <div class="welcome-card" onclick="askSuggestion(this)">
+            <div class="wc-icon">⚖️</div>
+            <div class="wc-body">
+              <div class="wc-title">Risk Management</div>
+              <div class="wc-desc">How are banking risks classified and managed?</div>
+            </div>
+          </div>
+          <div class="welcome-card" onclick="askSuggestion(this)">
+            <div class="wc-icon">📜</div>
+            <div class="wc-body">
+              <div class="wc-title">Basel III Norms</div>
+              <div class="wc-desc">Explain the Basel III regulatory framework</div>
+            </div>
+          </div>
+          <div class="welcome-card" onclick="askSuggestion(this)">
+            <div class="wc-icon">🏧</div>
+            <div class="wc-body">
+              <div class="wc-title">NEFT / RTGS / IMPS</div>
+              <div class="wc-desc">Differences between NEFT, RTGS and IMPS transfers</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Messages container -->
+      <div class="messages" id="messages"></div>
+
+      <!-- Scroll to bottom -->
+      <button class="scroll-btn" id="scrollBtn" onclick="scrollToBottom()" style="display:none">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="6 9 12 15 18 9"/></svg>
+      </button>
+    </div>
+
+    <!-- Input -->
+    <div class="input-container">
+      <form class="input-form" id="queryForm" onsubmit="handleSubmit(event)">
+        <div class="input-box">
+          <textarea id="questionInput" placeholder="Ask about banking policies, regulations, procedures…" rows="1" autofocus></textarea>
+          <div class="input-actions">
+            <span class="char-count" id="charCount"></span>
+            <button type="submit" class="send-btn" id="sendBtn" disabled>
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                <line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/>
+              </svg>
+            </button>
+          </div>
+        </div>
+        <div class="input-footer">
+          <span>Powered by <strong>Llama 3.3 70B</strong> via Groq</span>
+          <span class="dot-sep"></span>
+          <span>Answers grounded in banking documents</span>
+        </div>
+      </form>
+    </div>
+  </main>
+
+  <script src="/static/script.js"></script>
+</body>
+</html>
