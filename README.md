@@ -1,3 +1,12 @@
+---
+title: RAG Banking Assistant
+emoji: 🏦
+colorFrom: blue
+colorTo: indigo
+sdk: docker
+app_port: 7860
+---
+
 # BankRAG — AI Banking Document Assistant
 
 A production-ready **Retrieval-Augmented Generation (RAG)** system that answers banking & finance questions by searching through 27 real banking documents (4,100+ indexed chunks) using semantic search and LLM-powered answers.
