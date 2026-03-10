@@ -7,87 +7,59 @@ sdk: docker
 app_port: 7860
 ---
 
-# BankRAG — AI Banking Document Assistant
+# RAG Banking Assistant
 
-A production-ready **Retrieval-Augmented Generation (RAG)** system that answers banking & finance questions by searching through 27 real banking documents (4,100+ indexed chunks) using semantic search and LLM-powered answers.
+Ask questions about banking docs and get answers backed by actual sources. It searches through 27 banking PDFs (RBI guidelines, Basel frameworks, KYC, loans, etc.) using FAISS vector search, then sends the relevant chunks to Llama 3.3 70B to generate an answer.
 
-> **Live Demo:** [rag-banking-assistant.onrender.com](https://rag-banking-assistant.onrender.com) *(free tier — first load may take ~30s)*
+**Live demo:** [lazerai-rag-banking-assistant.hf.space](https://lazerai-rag-banking-assistant.hf.space)
 
----
+## How it works
 
-## Features
+1. PDFs get split into text chunks and embedded using sentence-transformers (MiniLM-L6-v2)
+2. Embeddings stored in a FAISS index (4,157 chunks from 27 documents)
+3. User asks a question → embed it → find top 7 matching chunks
+4. Send those chunks + the question to Llama 3.3 70B via Groq API
+5. Get back a grounded answer with source document names
 
-- **Semantic Search** — FAISS vector index with sentence-transformers embeddings for accurate document retrieval
-- **LLM Answers** — Groq-hosted Llama 3.3 70B generates grounded, cited responses
-- **27 Banking Documents** — RBI guidelines, Basel frameworks, KYC, loans, NEFT, deposit policies, and more
-- **Modern Chat UI** — Dark/light theme, markdown rendering, code copy, source document tags
-- **Chat History** — Persistent conversations stored in localStorage with auto-titling
-- **FastAPI Backend** — Async API with health checks and structured error handling
+## Stack
 
-## Tech Stack
+- Python 3.11
+- FastAPI + Uvicorn
+- FAISS for vector search
+- sentence-transformers for embeddings
+- Groq API (Llama 3.3 70B)
+- PyPDF2 + NLTK for preprocessing
+- Vanilla HTML/CSS/JS frontend
 
-| Layer | Technology |
-|-------|-----------|
-| **LLM** | Llama 3.3 70B Versatile (via Groq API) |
-| **Embeddings** | sentence-transformers/all-MiniLM-L6-v2 |
-| **Vector DB** | FAISS (faiss-cpu) |
-| **Backend** | FastAPI + Uvicorn |
-| **Frontend** | Vanilla HTML/CSS/JS (no framework) |
-| **Preprocessing** | PyPDF2, NLTK |
-
-## Architecture
-
-```
-User Question
-     │
-     ▼
-┌─────────────┐     ┌──────────────────┐
-│  FastAPI     │────▶│ Embed query      │
-│  /api/query  │     │ (MiniLM-L6-v2)   │
-└─────────────┘     └──────────────────┘
-                           │
-                           ▼
-                    ┌──────────────────┐
-                    │ FAISS search     │
-                    │ (top-7 chunks)   │
-                    └──────────────────┘
-                           │
-                           ▼
-                    ┌──────────────────┐
-                    │ Build prompt +   │
-                    │ Call Groq LLM    │
-                    └──────────────────┘
-                           │
-                           ▼
-                    ┌──────────────────┐
-                    │ Return answer +  │
-                    │ source documents │
-                    └──────────────────┘
-```
-
-## Quick Start
-
-### 1. Clone & install
+## Getting started
 
 ```bash
 git clone https://github.com/LAZERAI/rag-banking-assistant.git
 cd rag-banking-assistant
 python -m venv .venv
-.venv\Scripts\activate  # Windows
+.venv\Scripts\activate   # Windows
 pip install -r requirements.txt
 ```
 
-### 2. Set your API key
+Create a `.env` file:
 
-Create a `.env` file in the project root:
-
-```env
-GROQ_API_KEY=your_groq_api_key_here
+```
+GROQ_API_KEY=your_key_here
 ```
 
 Get a free key at [console.groq.com](https://console.groq.com)
 
-### 3. Preprocess documents (optional — index is included)
+Run it:
+
+```bash
+uvicorn app:app --reload --port 8000
+```
+
+Open http://localhost:8000
+
+## Reprocessing documents (optional)
+
+The FAISS index and chunks JSON are already included. If you want to add more PDFs, drop them in `data/` and run:
 
 ```bash
 cd src
@@ -95,22 +67,12 @@ python preprocess_pdfs.py
 python create_faiss_index.py
 ```
 
-### 4. Run the server
+## API
 
-```bash
-uvicorn app:app --reload --port 8000
-```
-
-Open [http://localhost:8000](http://localhost:8000)
-
-## API Endpoints
-
-| Method | Endpoint | Description |
-|--------|----------|-------------|
-| `POST` | `/api/query` | Send a question, get an AI answer with sources |
-| `GET` | `/api/health` | Health check with index stats |
-
-**Example request:**
+| Method | Endpoint | What it does |
+|--------|----------|--------------|
+| POST | `/api/query` | Send a question, get an answer with sources |
+| GET | `/api/health` | Health check + index stats |
 
 ```bash
 curl -X POST http://localhost:8000/api/query \
@@ -118,44 +80,27 @@ curl -X POST http://localhost:8000/api/query \
   -d '{"question": "What are the Basel III capital requirements?"}'
 ```
 
-## Project Structure
+## Project structure
 
 ```
-rag-banking-assistant/
-├── app.py                        # FastAPI backend
+├── app.py                        # FastAPI backend + LLM calls
 ├── static/
 │   ├── index.html                # Chat UI
-│   ├── style.css                 # Styles (dark/light theme)
+│   ├── style.css                 # Dark/light theme
 │   └── script.js                 # Frontend logic + chat history
 ├── src/
 │   ├── preprocess_pdfs.py        # PDF → text chunks
 │   ├── create_faiss_index.py     # Chunks → FAISS index
-│   └── retrieval.py              # Retrieval utilities
-├── data/                         # 27 banking PDF documents
-├── preprocessed_pdf_chunks.json  # 4,157 processed chunks
-├── rag_vector_index.faiss        # FAISS vector index
-├── render.yaml                   # Render deployment config
-├── requirements.txt
-└── .env                          # API key (not in repo)
+│   └── retrieval.py              # Retrieval utils
+├── data/                         # 27 banking PDFs
+├── preprocessed_pdf_chunks.json  # Processed chunks
+├── rag_vector_index.faiss        # Vector index
+└── .env                          # API key (not committed)
 ```
 
-## Deploy on Render (Free)
+## What's in the document set
 
-1. Push this repo to GitHub
-2. Go to [render.com](https://render.com) → **New Web Service**
-3. Connect your GitHub repo
-4. Render auto-detects `render.yaml` settings
-5. Add environment variable: `GROQ_API_KEY`
-6. Deploy — done!
-
-## Documents Indexed
-
-The system indexes 27 real banking documents including:
-
-- **RBI Guidelines** — NEFT, counterfeit detection, customer service, lead bank scheme
-- **Basel Frameworks** — Basel II, Basel III capital requirements, liquidity coverage
-- **Banking Policies** — KYC, ALM, deposits, loans, risk management, data protection
-- **Operations** — Transaction limits, approval matrix, customer onboarding, account types
+27 banking documents covering RBI guidelines (NEFT, counterfeit detection, customer service), Basel II/III frameworks, KYC, ALM, deposit/loan policies, risk management, transaction limits, and more.
 
 ## License
 
